@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+ 	<meta charset="utf-8">
+ 	<meta name="Keywords" content="关键词1,关键词2">
+ 	<meta name="Description" content="描述">
+	<title>canvas粒子 需要用面向对象方法(没做性能优化)</title>
+</head>
+<style type="text/css">
+    *{
+    	padding: 0;
+    	margin: 0;
+    }
+	#canvas{
+		background: #000;
+		display: block;
+	}
+
+</style>
+<body>
+     <canvas id="canvas"></canvas>    <!-- html -->
+     
+
+     <script type="text/javascript">
+     	var can = document.getElementById('canvas');
+     	var ctx = can.getContext("2d");   //设置绘画环境
+        var w = can.width = window.innerWidth;
+        var h = can.height = window.innerHeight;
+  
+
+        window.onresize = function(){//窗口尺寸变化时
+        	var w = can.width = window.innerWidth;
+        	var h = can.height = window.innerHeight;
+        }
+        //设置圆形路径
+        //ctx.arc(x,y,r,0,Math.PI*2,false); //x和y是圆心坐标,r是半径,Math.PI*2是绘制整圆,false是逆时针
+        //ctx.fillStyle = "red";//绘制的圆的颜色
+        //ctx.fill();//填充方法,填充一个实心圆
+
+        //canvas动画原理(利用定时器不断获得圆的坐标进行重绘)
+       /* var x=0,
+        	y=0;
+        setInterval(function(){
+        	 x++;
+        	 y+=2;//让y坐标每次多加点
+        	 ctx.clearRect(0,0,w,h);//清空画布 00是坐标 wh是清空多大面积(宽高 )
+        	 ctx.beginPath();//开始路径
+        	 ctx.arc(x,y,r,0,Math.PI*2,false);
+        	 ctx.fillStyle = "red";
+        	 ctx.fill();
+
+        },100)*/
+
+        //创建一个圆形类
+        function Circle(){
+        	//圆心坐标
+        	this.x = Math.random()*w;
+        	this.y = Math.random()*h;
+        	//规定速度值
+        	this.vx = Math.random()*20-10;// (0-20)-10=(-10到10)有负有正 向左向右跑都有 
+        	this.vy = Math.random()*20-10;
+
+        	//圆形半径
+        	this.r = Math.random()*20+10;//20~40
+
+        	//随机颜色
+        	var r = Math.random()*255>>0;//>>0移位运算  变为整数了
+        	var g = Math.random()*255>>0;
+        	var b = Math.random()*255>>0;
+        	this.color = "rgba("+r+","+g+","+b+",0.5)";
+          }
+          
+
+          var counts = []; //定义一个空数组
+          for(var i=0;i<80;i++){//声明圆形个数(可以手动改动)
+          		counts.push(new Circle());//在这里实例化圆形对象,往这个counts数组添加50个实例化的圆形对象
+          }
+          //实例化具体的圆形对象
+          //var circle = new Circle();
+          //console.log(circle)//this就指代具体的某个实例化对象	
+
+           function draw(){
+           	    //ctx.clearRect(0,0,w,h);
+           	    //绘制透明层
+           	    ctx.globalCompositeOperation = "source-over";//设置或返回新图象如何绘制到已有的图像上(source-over默认,在目标图像上显示源图像)
+           	    ctx.fillStyle = "rgba(0,0,0,0.3)";
+           	    ctx.fillRect(0,0,w,h);//绘制一个矩形 从00坐标绘制到wh宽高坐标
+   				
+   				ctx.globalCompositeOperation = "lighter";//设置或返回新图象如何绘制到已有的图像上(显示源图像+目标图像)
+
+   				
+   				for(var i=0;i<counts.length;i++){
+   					 var c = counts[i];
+   					 //设置渐变颜色createRadialGradient(x1,y1,r1,x2,y2,r2);大圆套小圆,1是内圆(小圆)
+   					 var color = ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r);
+   					 color.addColorStop(0,"#fff");//添加颜色到什么地方结束(0是起点1是终点,0-0.5是白色,0.5-1是随机(渐变)颜色)
+   					 color.addColorStop(0.5,"#fff");
+   					 color.addColorStop(0.5,c.color);
+   					 color.addColorStop(1,"#000");
+
+   					 
+   					 ctx.beginPath();//开始路径
+        	 		 ctx.arc(c.x,c.y,c.r,0,Math.PI*2,false);
+        	 		 ctx.fillStyle = color;
+        	 		 ctx.fill();
+        	 		 //更新坐标值
+        	 		 c.x += c.vx;
+        	 		 c.y += c.vy;
+        	 		 //限制移动范围
+        	 		 if(c.x<0){
+        	 		 	c.x=w//从左边消失在右边出来
+        	 		 };
+        	 		 if(c.x>w){
+        	 		 	c.x=0
+        	 		 };
+        	 		 if(c.y>h){
+        	 		 	c.x=0
+        	 		 };
+        	 		 if(c.y<0){
+        	 		 	c.y=h
+        	 		 };
+   				}
+           }
+           setInterval(draw,30);
+           //draw();
+ 
+
+
+
+     </script>
+</body>
+</html>
